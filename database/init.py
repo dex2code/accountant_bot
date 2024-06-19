@@ -19,7 +19,6 @@ async def create_metadata(db_engine: AsyncEngine) -> bool:
     raise
 
   else:
-    logger.info(f"Database metadata successfully created")
     def_result = True
 
   return def_result

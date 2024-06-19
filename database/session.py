@@ -7,8 +7,6 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 
 @logger.catch
 def create_db_session(db_engine: AsyncEngine) -> async_sessionmaker[AsyncSession]:
-  def_result = None
-
   try:
     def_result = async_sessionmaker(db_engine, autoflush=True, expire_on_commit=False)
   except BaseException as E:

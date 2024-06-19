@@ -17,6 +17,10 @@ database = {
   "echo": True,
 }
 
+telegram = {
+  "timeout_sec": 10,
+}
+
 
 if __name__ == "__main__":
   pass
