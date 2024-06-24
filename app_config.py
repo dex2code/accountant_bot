@@ -12,9 +12,11 @@ log = {
 
 database = {
   "scheme": "sqlite+aiosqlite",
-  "database_path": "database/accountant.sqlite",
+  "path": "database/accountant.sqlite",
   "query": {"charset": "utf8mb4"},
   "echo": True,
+  "autoflush": True,
+  "expire_on_commit": False
 }
 
 telegram = {

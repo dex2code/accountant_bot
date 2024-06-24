@@ -3,11 +3,17 @@ from loguru import logger
 import app_config
 
 import asyncio
+from aiogram import Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
 
-from database.engine import create_db_engine
-from database.init import create_metadata
-from telegram.dispatcher import create_telegram_dispatcher
+from database.metadata import create_metadata
 from telegram.bot import get_telegram_api_key, create_telegram_bot, get_bot_commands
+
+from telegram.routers import r_cancel
+from telegram.routers import r_start
+from telegram.routers import r_income
+from telegram.routers import r_savings
+from telegram.routers import r_unknown
 
 
 @logger.catch
@@ -15,46 +21,35 @@ async def main() -> None:
   logger.info("*** Starting Accountant Bot...")
 
   try:
-    db_engine = create_db_engine(config=app_config.database)
-    if not db_engine or db_engine is None:
-      raise Exception(f"db_engine is None")
-    logger.info(f"{db_engine=}")
+    if not await create_metadata():
+      raise Exception("Cannot create database metadata")
 
-    metadata_result = await create_metadata(db_engine=db_engine)
-    if not metadata_result:
-      raise Exception(f"Create database metadata failed")
-    logger.info(f"{metadata_result=}")
-  
-    telegram_dispatcher = create_telegram_dispatcher()
-    logger.info(f"{telegram_dispatcher=}")
-  
     telegram_api_key = get_telegram_api_key()
-    telegram_bot = await create_telegram_bot(api_key=telegram_api_key)
-    logger.info(f"{telegram_bot=}")
-
     telegram_bot_commands = get_bot_commands()
+    telegram_bot = await create_telegram_bot(api_key=telegram_api_key)
     if not await telegram_bot.set_my_commands(
       commands=telegram_bot_commands,
       request_timeout=app_config.telegram['timeout_sec'],
-    ):
-      raise Exception("Cannot set bot commands")
-    logger.info(f"{telegram_bot_commands=}")
+    ): raise Exception("Cannot set bot commands")
+    logger.info(f"{telegram_bot=}")
 
-    await telegram_bot.delete_webhook(drop_pending_updates=True)
-    logger.info("Starting bot polling...")
-    await telegram_dispatcher.start_polling(
-      telegram_bot,
-      skip_updates=True,
-    )
+    dispatcher_storage = MemoryStorage()
+    telegram_dispatcher = Dispatcher(storage=dispatcher_storage)
+    telegram_dispatcher.include_router(router=r_cancel.router)
+    telegram_dispatcher.include_router(router=r_start.router)
+    telegram_dispatcher.include_router(router=r_income.router)
+    telegram_dispatcher.include_router(router=r_savings.router)
+    telegram_dispatcher.include_router(router=r_unknown.router)
+    logger.info(f"{telegram_dispatcher=}")
+    await telegram_dispatcher.start_polling(telegram_bot)
 
   except BaseException as E:
     logger.critical(f"Exception found: '{E.__repr__()}' ({E})")
     raise
 
   finally:
-    await db_engine.dispose()
-    await telegram_dispatcher.emit_shutdown()
     logger.info(f"*** Shutdown Accountant bot")
+    await telegram_dispatcher.emit_shutdown()
 
   return None
 
@@ -71,5 +66,4 @@ if __name__ == "__main__":
     retention=app_config.log['retention'],
     compression=app_config.log['compression']
   )
-
   asyncio.run(main=main())
