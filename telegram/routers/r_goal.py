@@ -7,14 +7,14 @@ from aiogram.filters import Command
 from database.classes import AccountantUser
 
 from telegram.courier import send_text
-from telegram.texts.t_income import cmd_dict
+from telegram.texts.t_goal import cmd_dict
 
 router = Router()
 
 
-@router.message(Command("income"))
+@router.message(Command("goal"))
 @logger.catch
-async def cmd_income(message: types.Message) -> None:
+async def cmd_goal(message: types.Message) -> None:
   logger.info(f"→ Got '{message.text}' command from {message.from_user.id}@{message.chat.id}")
 
   try:
@@ -29,17 +29,17 @@ async def cmd_income(message: types.Message) -> None:
     if len(message_list) < 2:
       await send_text(
         message=message,
-        text=cmd_dict['info'].format(monthly_income=user_profile.monthly_income)
+        text=cmd_dict['info'].format(monthly_goal=user_profile.monthly_goal)
       )
     else:
-      new_income = int(
+      new_goal = int(
         message_list[1]
       )
-      user_profile.monthly_income = new_income
+      user_profile.monthly_goal = new_goal
       await user_profile.merge_profile()
       await send_text(
         message=message,
-        text=cmd_dict['set'].format(monthly_income=user_profile.monthly_income)
+        text=cmd_dict['set'].format(monthly_goal=user_profile.monthly_goal)
       )
 
   except ValueError as E:
@@ -52,8 +52,8 @@ async def cmd_income(message: types.Message) -> None:
   except BaseException as E:
     logger.error(E)
     await send_text(
-      message=message,text=cmd_dict['error']
+      message=message,
+      text=cmd_dict['wrong']
     )
-
 
   return None

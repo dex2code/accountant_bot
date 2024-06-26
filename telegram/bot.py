@@ -44,7 +44,7 @@ def get_bot_commands() -> list[BotCommand]:
     BotCommand(command="/report", description="📊 Отчет"),
     BotCommand(command="/income", description="💵 Ежемесячный доход"),
     BotCommand(command="/savings", description="💰 Текущие накопления"),
-    BotCommand(command="/goal", description="✅ Ежемесячная цель"),
+    BotCommand(command="/goal", description="🎯 Ежемесячная цель"),
     BotCommand(command="/reset", description="⭕️ Сбросить данные профиля"),
   ]
 

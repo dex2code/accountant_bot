@@ -17,7 +17,6 @@ def create_db_session(db_engine: AsyncEngine) -> async_sessionmaker[AsyncSession
   except BaseException as E:
     logger.critical(f"Cannot create database session: '{E.__repr__()}' ({E})")
     raise
-  
   return db_session
 
 

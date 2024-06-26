@@ -6,27 +6,17 @@ from database.classes import AccountantBase
 
 
 @logger.catch
-async def create_metadata() -> bool:
-  def_result = False
-
+async def create_metadata() -> None:
   try:
     db_engine = create_db_engine()
-    if not db_engine or db_engine is None:
-      raise Exception(f"db_engine is None")
-
     async with db_engine.begin() as db_channel:
       await db_channel.run_sync(AccountantBase.metadata.create_all)
-
-    await db_engine.dispose()    
-
   except BaseException as E:
-    logger.critical(f"Cannot create database metadata: '{E.__repr__()}' ({E})")
+    logger.critical(E)
     raise
-
-  else:
-    def_result = True
-
-  return def_result
+  finally:
+    await db_engine.dispose()
+  return None
 
 
 if __name__ == "__main__":

@@ -20,13 +20,13 @@ async def send_text(message: Message,
   try:
     if reply:
       def_result = await message.reply(
-        text=text.as_html(),
+        text=text,
         markup=markup,
         request_timeout=app_config.telegram['timeout_sec'],
       )
     else:
       def_result = await message.answer(
-        text=text.as_html(),
+        text=text,
         markup=markup,
         request_timeout=app_config.telegram['timeout_sec'],
       )

@@ -4,15 +4,15 @@ import app_config
 
 import asyncio
 from aiogram import Dispatcher
-from aiogram.fsm.storage.memory import MemoryStorage
 
 from database.metadata import create_metadata
 from telegram.bot import get_telegram_api_key, create_telegram_bot, get_bot_commands
 
-from telegram.routers import r_cancel
 from telegram.routers import r_start
 from telegram.routers import r_income
 from telegram.routers import r_savings
+from telegram.routers import r_goal
+from telegram.routers import r_spending
 from telegram.routers import r_unknown
 
 
@@ -21,8 +21,7 @@ async def main() -> None:
   logger.info("*** Starting Accountant Bot...")
 
   try:
-    if not await create_metadata():
-      raise Exception("Cannot create database metadata")
+    await create_metadata()
 
     telegram_api_key = get_telegram_api_key()
     telegram_bot_commands = get_bot_commands()
@@ -33,12 +32,12 @@ async def main() -> None:
     ): raise Exception("Cannot set bot commands")
     logger.info(f"{telegram_bot=}")
 
-    dispatcher_storage = MemoryStorage()
-    telegram_dispatcher = Dispatcher(storage=dispatcher_storage)
-    telegram_dispatcher.include_router(router=r_cancel.router)
+    telegram_dispatcher = Dispatcher()
     telegram_dispatcher.include_router(router=r_start.router)
     telegram_dispatcher.include_router(router=r_income.router)
     telegram_dispatcher.include_router(router=r_savings.router)
+    telegram_dispatcher.include_router(router=r_goal.router)
+    telegram_dispatcher.include_router(router=r_spending.router)
     telegram_dispatcher.include_router(router=r_unknown.router)
     logger.info(f"{telegram_dispatcher=}")
     await telegram_dispatcher.start_polling(telegram_bot)

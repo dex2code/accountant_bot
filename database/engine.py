@@ -9,21 +9,16 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 @logger.catch
 def create_db_engine() -> AsyncEngine:
-  db_engine = None
-
   try:
     db_url = sql_url.create(
       drivername=app_config.database['scheme'],
       database=app_config.database['path'],
       query=app_config.database['query']
     )
-
     db_engine = create_async_engine(url=db_url, echo=app_config.database['echo'])
-  
   except BaseException as E:
-     logger.critical(f"Cannot create database engine: '{E.__repr__()} ({E})'")
+     logger.critical(E)
      raise
-  
   return db_engine
 
 
