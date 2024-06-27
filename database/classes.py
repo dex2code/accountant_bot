@@ -24,7 +24,6 @@ class AccountantUser(AccountantBase):
 
   id: MappedColumn[int] = mapped_column(INTEGER, primary_key=True, nullable=False, autoincrement=True)
   monthly_income: MappedColumn[int] = mapped_column(INTEGER, nullable=False, default=0)
-  savings: MappedColumn[int] = mapped_column(INTEGER, nullable=False, default=0)
   monthly_goal: MappedColumn[int] = mapped_column(INTEGER, nullable=False, default=0)
   start_dt: MappedColumn[date] = mapped_column(DATE, nullable=False, server_default=sql_func.current_date())
 

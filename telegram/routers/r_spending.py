@@ -1,12 +1,11 @@
 from __future__ import annotations
 from loguru import logger
 
-import calendar
-from datetime import datetime
-
 from aiogram import Router, types, F
 
 from database.classes import AccountantUser, AccountantOperations
+
+from app_tools import get_month_days
 
 from telegram.courier import send_text
 from telegram.texts.t_spending import cmd_dict
@@ -45,10 +44,9 @@ async def cmd_spending(message: types.Message) -> None:
     left_spends = user_profile.monthly_income - user_profile.monthly_goal - sum_monthly_spendings
 
     if left_spends > 0:
-      day_in_month = calendar.monthrange(year=datetime.today().year, month=datetime.today().month)[1]
-      left_month = day_in_month - datetime.today().day + 1
+      left_days_month = get_month_days()['left_days_month']
       avg_spends = int(
-        left_spends / left_month
+        left_spends / left_days_month
       )
       await send_text(
         message=message,
@@ -60,15 +58,15 @@ async def cmd_spending(message: types.Message) -> None:
       )
 
     else:
-      diff_spend = sum_monthly_spendings - (user_profile.monthly_income - user_profile.monthly_goal)
-      left_month = user_profile.monthly_income - sum_monthly_spendings
+      overspent = sum_monthly_spendings - (user_profile.monthly_income - user_profile.monthly_goal)
+      left_income = user_profile.monthly_income - sum_monthly_spendings
       await send_text(
         message=message,
         text=cmd_dict['info_negative'].format(
           monthly_goal=user_profile.monthly_goal,
           sum_monthly_spendings=sum_monthly_spendings,
-          diff_spend=diff_spend,
-          left_month=left_month
+          overspent=overspent,
+          left_income=left_income
         )
       )
 

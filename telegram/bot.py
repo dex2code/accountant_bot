@@ -41,11 +41,10 @@ async def create_telegram_bot(api_key: str) -> Bot:
 @logger.catch
 def get_bot_commands() -> list[BotCommand]:
   bot_commands = [
-    BotCommand(command="/report", description="📊 Отчет"),
-    BotCommand(command="/income", description="💵 Ежемесячный доход"),
-    BotCommand(command="/savings", description="💰 Текущие накопления"),
-    BotCommand(command="/goal", description="🎯 Ежемесячная цель"),
-    BotCommand(command="/reset", description="⭕️ Сбросить данные профиля"),
+    BotCommand(command="/report", description="📊 ⋅ Отчет за месяц"),
+    BotCommand(command="/income", description="💵 ⋅ Ежемесячный доход"),
+    BotCommand(command="/goal", description="🎯 ⋅ Ежемесячная цель"),
+    BotCommand(command="/reset", description="⭕️ ⋅ Сбросить данные профиля"),
   ]
 
   return bot_commands

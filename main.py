@@ -10,7 +10,6 @@ from telegram.bot import get_telegram_api_key, create_telegram_bot, get_bot_comm
 
 from telegram.routers import r_start
 from telegram.routers import r_income
-from telegram.routers import r_savings
 from telegram.routers import r_goal
 from telegram.routers import r_spending
 from telegram.routers import r_unknown
@@ -35,7 +34,6 @@ async def main() -> None:
     telegram_dispatcher = Dispatcher()
     telegram_dispatcher.include_router(router=r_start.router)
     telegram_dispatcher.include_router(router=r_income.router)
-    telegram_dispatcher.include_router(router=r_savings.router)
     telegram_dispatcher.include_router(router=r_goal.router)
     telegram_dispatcher.include_router(router=r_spending.router)
     telegram_dispatcher.include_router(router=r_unknown.router)
