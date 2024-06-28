@@ -78,7 +78,7 @@ class AccountantUser(AccountantBase):
     return None
 
   @logger.catch
-  async def get_sum_daily_spendings(self) -> int:
+  async def get_sum_date_spendings(self, d: date) -> int:
     try:
       db_engine = create_db_engine()
       db_session = create_db_session(db_engine=db_engine)
@@ -86,7 +86,7 @@ class AccountantUser(AccountantBase):
         sum_daily_spendings = await db_channel.scalar(
           statement=select(sql_func.sum(AccountantOperations.operation_value))
             .filter(AccountantOperations.user_id == self.id)
-            .filter(AccountantOperations.operation_dt == sql_func.current_date())
+            .filter(AccountantOperations.operation_dt == d)
         )
         await db_channel.commit()
     except BaseException as E:
@@ -98,7 +98,28 @@ class AccountantUser(AccountantBase):
     return sum_daily_spendings
 
   @logger.catch
-  async def get_sum_monthly_spendings(self) -> int:
+  async def get_sum_month_spendings(self, y: int, m: int) -> int:
+    try:
+      db_engine = create_db_engine()
+      db_session = create_db_session(db_engine=db_engine)
+      async with db_session.begin() as db_channel:
+        sum_daily_spendings = await db_channel.scalar(
+          statement=select(sql_func.sum(AccountantOperations.operation_value))
+            .filter(AccountantOperations.user_id == self.id)
+            .filter(extract('year', AccountantOperations.operation_dt) == y)
+            .filter(extract('month', AccountantOperations.operation_dt) == m)
+        )
+        await db_channel.commit()
+    except BaseException as E:
+      logger.error(E)
+      await db_channel.rollback()
+      raise
+    finally:
+      await db_engine.dispose()
+    return sum_daily_spendings
+
+  @logger.catch
+  async def get_sum_last_month_spendings(self) -> int:
     try:
       db_engine = create_db_engine()
       db_session = create_db_session(db_engine=db_engine)

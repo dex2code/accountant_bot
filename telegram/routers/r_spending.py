@@ -1,6 +1,7 @@
 from __future__ import annotations
 from loguru import logger
 
+from datetime import date
 from aiogram import Router, types, F
 
 from database.classes import AccountantUser, AccountantOperations
@@ -31,18 +32,23 @@ async def cmd_spending(message: types.Message) -> None:
     operation.user_id = message.from_user.id
     operation.operation_value = new_spending_value
     await operation.create_operation()
-    sum_daily_spendings = await user_profile.get_sum_daily_spendings()
+
+    today = date.today()
+    sum_today_spendings = await user_profile.get_sum_date_spendings(d=today)
+    sum_month_spendings = await user_profile.get_sum_month_spendings(
+      y=int(today.strftime("%Y")),
+      m=int(today.strftime("%-m"))
+    )
     await send_text(
       message=message,
       text=cmd_dict['spent'].format(
         operation_value=operation.operation_value,
-        sum_daily_spendings=sum_daily_spendings
+        sum_month_spendings=sum_month_spendings,
+        sum_today_spendings=sum_today_spendings,
       )
     )
 
-    sum_monthly_spendings = await user_profile.get_sum_monthly_spendings()
-    left_spends = user_profile.monthly_income - user_profile.monthly_goal - sum_monthly_spendings
-
+    left_spends = user_profile.monthly_income - user_profile.monthly_goal - sum_month_spendings
     if left_spends > 0:
       left_days_month = get_month_days()['left_days_month']
       avg_spends = int(
@@ -56,15 +62,14 @@ async def cmd_spending(message: types.Message) -> None:
           avg_spends=avg_spends
         )
       )
-
     else:
-      overspent = sum_monthly_spendings - (user_profile.monthly_income - user_profile.monthly_goal)
-      left_income = user_profile.monthly_income - sum_monthly_spendings
+      overspent = sum_month_spendings - (user_profile.monthly_income - user_profile.monthly_goal)
+      left_income = user_profile.monthly_income - sum_month_spendings
       await send_text(
         message=message,
         text=cmd_dict['info_negative'].format(
           monthly_goal=user_profile.monthly_goal,
-          sum_monthly_spendings=sum_monthly_spendings,
+          sum_monthly_spendings=sum_month_spendings,
           overspent=overspent,
           left_income=left_income
         )

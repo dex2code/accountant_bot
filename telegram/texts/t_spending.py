@@ -9,8 +9,11 @@ cmd_dict = {
       Italic("{operation_value:,}"), " ₽",
     ),
     as_line(
-      " 🤑 За сегодня уже потрачено: ",
-      Italic("{sum_daily_spendings:,}"), " ₽",
+      " 🤑 В этом месяце уже потрачено: ",
+      Italic("{sum_month_spendings:,}"), " ₽",
+      "\n ( за сегодня: ",
+      Italic("{sum_today_spendings:,}"), " ₽",
+      " )"
     )
   ).as_html(),
 
