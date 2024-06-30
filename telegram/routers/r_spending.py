@@ -28,6 +28,9 @@ async def cmd_spending(message: types.Message) -> None:
       raise Exception("Not a user here - profile is None")
 
     new_spending_value = int(message.text)
+    if new_spending_value <= 0:
+      raise ValueError
+  
     operation = AccountantOperations()
     operation.user_id = message.from_user.id
     operation.operation_value = new_spending_value

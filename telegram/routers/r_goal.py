@@ -37,7 +37,10 @@ async def cmd_goal(message: types.Message) -> None:
         message_list[1]
       )
 
-      if new_goal >= user_profile.monthly_income:
+      if new_goal < 0:
+        raise ValueError
+
+      if new_goal > user_profile.monthly_income:
         await send_text(
           message=message,
           text=cmd_dict['greater'].format(monthly_income=user_profile.monthly_income)
