@@ -31,10 +31,19 @@ async def cmd_income(message: types.Message) -> None:
         message=message,
         text=cmd_dict['info'].format(monthly_income=user_profile.monthly_income)
       )
+
     else:
       new_income = int(
         message_list[1]
       )
+
+      if new_income <= user_profile.monthly_goal:
+        await send_text(
+          message=message,
+          text=cmd_dict['less'].format(monthly_goal=user_profile.monthly_goal)
+        )
+        return None
+
       user_profile.monthly_income = new_income
       await user_profile.merge_profile()
       await send_text(
@@ -55,5 +64,8 @@ async def cmd_income(message: types.Message) -> None:
       message=message,text=cmd_dict['error']
     )
 
-
   return None
+
+
+if __name__ == "__main__":
+  pass

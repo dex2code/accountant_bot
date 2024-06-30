@@ -90,3 +90,7 @@ async def cmd_spending(message: types.Message) -> None:
     )
 
   return None
+
+
+if __name__ == "__main__":
+  pass

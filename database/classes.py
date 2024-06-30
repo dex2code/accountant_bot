@@ -6,7 +6,7 @@ from datetime import datetime, date
 from sqlalchemy import select, text, extract
 from sqlalchemy import ForeignKey
 from sqlalchemy import func as sql_func
-from sqlalchemy.orm import DeclarativeBase, MappedColumn
+from sqlalchemy.orm import DeclarativeBase, MappedColumn, relationship
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.dialects.sqlite import INTEGER, DATE
@@ -26,6 +26,7 @@ class AccountantUser(AccountantBase):
   monthly_income: MappedColumn[int] = mapped_column(INTEGER, nullable=False, default=0)
   monthly_goal: MappedColumn[int] = mapped_column(INTEGER, nullable=False, default=0)
   start_dt: MappedColumn[date] = mapped_column(DATE, nullable=False, server_default=sql_func.current_date())
+  operations = relationship("AccountantOperations", back_populates="user", cascade="all, delete, delete-orphan")
 
   @logger.catch
   async def get_profile(self) -> AccountantUser:
@@ -76,6 +77,27 @@ class AccountantUser(AccountantBase):
     finally:
       await db_engine.dispose()
     return None
+  
+  @logger.catch
+  async def reset_profile(self) -> None:
+    try:
+      db_engine = create_db_engine()
+      db_session = create_db_session(db_engine=db_engine)
+      async with db_session.begin() as db_channel:
+        await db_channel.delete(self)
+        self.monthly_income = 0
+        self.monthly_goal = 0
+        self.start_dt = sql_func.current_date()
+        db_channel.add(self)
+        await db_channel.commit()
+    except BaseException as E:
+      logger.error(E)
+      await db_channel.rollback()
+      raise
+    finally:
+      await db_engine.dispose()
+    return None
+
 
   @logger.catch
   async def get_sum_date_spendings(self, d: date) -> int:
@@ -147,6 +169,7 @@ class AccountantOperations(AccountantBase):
   user_id: MappedColumn[int] = mapped_column(ForeignKey("accountant_users.id", ondelete="CASCADE"), index=True, nullable=False)
   operation_value: MappedColumn[int] = mapped_column(INTEGER, nullable=False, default=0)
   operation_dt: MappedColumn[date] = mapped_column(DATE, index=True, nullable=False, server_default=sql_func.current_date())
+  user = relationship("AccountantUser", back_populates="operations")
 
   @logger.catch
   async def create_operation(self) -> None:

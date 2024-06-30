@@ -54,3 +54,7 @@ async def cmd_start(message: types.Message) -> None:
     )
 
   return None
+
+
+if __name__ == "__main__":
+  pass

@@ -17,3 +17,7 @@ router = Router()
 async def cmd_report(message: types.Message) -> None:
   logger.info(f"→ Got '{message.text}' command from {message.from_user.id}@{message.chat.id}")
   return None
+
+
+if __name__ == "__main__":
+  pass
