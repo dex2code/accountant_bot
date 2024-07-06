@@ -1,4 +1,4 @@
-from aiogram.utils.formatting import as_list, as_line, Italic
+from aiogram.utils.formatting import as_list, as_line
 
 
 cmd_dict = {

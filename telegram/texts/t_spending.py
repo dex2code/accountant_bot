@@ -25,7 +25,7 @@ cmd_dict = {
       Italic("{left_spends:,}"), " ₽\n",
       " ( Это в среднем ",
       Italic("{avg_spends:,}"), " ₽",
-      " в день )"),
+      " в день до конца календарного месяца )"),
   ).as_html(),
 
   "info_negative": as_list(

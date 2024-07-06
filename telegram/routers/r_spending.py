@@ -4,7 +4,7 @@ from loguru import logger
 from datetime import date
 from aiogram import Router, types, F
 
-from database.classes import AccountantUser, AccountantOperations
+from database.classes import AccountantUser, AccountantOperation
 
 from app_tools import get_month_days
 
@@ -31,7 +31,7 @@ async def cmd_spending(message: types.Message) -> None:
     if new_spending_value <= 0:
       raise ValueError
   
-    operation = AccountantOperations()
+    operation = AccountantOperation()
     operation.user_id = message.from_user.id
     operation.operation_value = new_spending_value
     await operation.create_operation()

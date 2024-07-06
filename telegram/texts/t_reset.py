@@ -1,4 +1,4 @@
-from aiogram.utils.formatting import as_list, as_line, Italic, Code
+from aiogram.utils.formatting import as_list, as_line, Code
 
 confirm_message = "Да, я уверен"
 

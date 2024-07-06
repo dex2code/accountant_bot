@@ -14,6 +14,7 @@ from telegram.routers import r_income
 from telegram.routers import r_goal
 from telegram.routers import r_report
 from telegram.routers import r_spending
+from telegram.routers import r_delete
 from telegram.routers import r_reset
 from telegram.routers import r_unknown
 
@@ -41,6 +42,7 @@ async def main() -> None:
     telegram_dispatcher.include_router(router=r_goal.router)
     telegram_dispatcher.include_router(router=r_report.router)
     telegram_dispatcher.include_router(router=r_spending.router)
+    telegram_dispatcher.include_router(router=r_delete.router)
     telegram_dispatcher.include_router(router=r_reset.router)
     telegram_dispatcher.include_router(router=r_unknown.router)
     logger.info(f"{telegram_dispatcher=}")

@@ -26,7 +26,7 @@ class AccountantUser(AccountantBase):
   monthly_income: MappedColumn[int] = mapped_column(INTEGER, nullable=False, default=0)
   monthly_goal: MappedColumn[int] = mapped_column(INTEGER, nullable=False, default=0)
   start_dt: MappedColumn[date] = mapped_column(DATE, nullable=False, server_default=sql_func.current_date())
-  operations = relationship("AccountantOperations", back_populates="user", cascade="all, delete, delete-orphan")
+  operations = relationship("AccountantOperation", back_populates="user", cascade="all, delete, delete-orphan")
 
   @logger.catch
   async def get_profile(self) -> AccountantUser:
@@ -98,26 +98,27 @@ class AccountantUser(AccountantBase):
       await db_engine.dispose()
     return None
 
-
   @logger.catch
   async def get_sum_date_spendings(self, d: date) -> int:
     try:
       db_engine = create_db_engine()
       db_session = create_db_session(db_engine=db_engine)
       async with db_session.begin() as db_channel:
-        sum_daily_spendings = await db_channel.scalar(
-          statement=select(sql_func.sum(AccountantOperations.operation_value))
-            .filter(AccountantOperations.user_id == self.id)
-            .filter(AccountantOperations.operation_dt == d)
+        sum_date_spendings = await db_channel.scalar(
+          statement=select(sql_func.sum(AccountantOperation.operation_value))
+            .filter(AccountantOperation.user_id == self.id)
+            .filter(AccountantOperation.operation_dt == d)
         )
         await db_channel.commit()
+      if sum_date_spendings is None:
+        sum_date_spendings = 0
     except BaseException as E:
       logger.error(E)
       await db_channel.rollback()
       raise
     finally:
       await db_engine.dispose()
-    return sum_daily_spendings
+    return sum_date_spendings
 
   @logger.catch
   async def get_sum_month_spendings(self, y: int, m: int) -> int:
@@ -125,20 +126,22 @@ class AccountantUser(AccountantBase):
       db_engine = create_db_engine()
       db_session = create_db_session(db_engine=db_engine)
       async with db_session.begin() as db_channel:
-        sum_daily_spendings = await db_channel.scalar(
-          statement=select(sql_func.sum(AccountantOperations.operation_value))
-            .filter(AccountantOperations.user_id == self.id)
-            .filter(extract('year', AccountantOperations.operation_dt) == y)
-            .filter(extract('month', AccountantOperations.operation_dt) == m)
+        sum_month_spendings = await db_channel.scalar(
+          statement=select(sql_func.sum(AccountantOperation.operation_value))
+            .filter(AccountantOperation.user_id == self.id)
+            .filter(extract('year', AccountantOperation.operation_dt) == y)
+            .filter(extract('month', AccountantOperation.operation_dt) == m)
         )
         await db_channel.commit()
+      if sum_month_spendings is None:
+        sum_month_spendings = 0
     except BaseException as E:
       logger.error(E)
       await db_channel.rollback()
       raise
     finally:
       await db_engine.dispose()
-    return sum_daily_spendings
+    return sum_month_spendings
 
   @logger.catch
   async def get_sum_last_month_spendings(self) -> int:
@@ -146,11 +149,34 @@ class AccountantUser(AccountantBase):
       db_engine = create_db_engine()
       db_session = create_db_session(db_engine=db_engine)
       async with db_session.begin() as db_channel:
-        sum_daily_spendings = await db_channel.scalar(
-          statement=select(sql_func.sum(AccountantOperations.operation_value))
-            .filter(AccountantOperations.user_id == self.id)
-            .filter(extract('year', AccountantOperations.operation_dt) == datetime.today().year)
-            .filter(extract('month', AccountantOperations.operation_dt) == datetime.today().month)
+        sum_last_month_spendings = await db_channel.scalar(
+          statement=select(sql_func.sum(AccountantOperation.operation_value))
+            .filter(AccountantOperation.user_id == self.id)
+            .filter(extract('year', AccountantOperation.operation_dt) == datetime.today().year)
+            .filter(extract('month', AccountantOperation.operation_dt) == datetime.today().month)
+        )
+        await db_channel.commit()
+        if sum_last_month_spendings is None:
+          sum_last_month_spendings = 0
+    except BaseException as E:
+      logger.error(E)
+      await db_channel.rollback()
+      raise
+    finally:
+      await db_engine.dispose()
+    return sum_last_month_spendings
+
+  @logger.catch
+  async def get_last_spending(self) -> AccountantOperation:
+    try:
+      db_engine = create_db_engine()
+      db_session = create_db_session(db_engine=db_engine)
+      async with db_session.begin() as db_channel:
+        last_spending = await db_channel.scalar(
+          statement=select(AccountantOperation)
+            .filter(AccountantOperation.user_id == self.id)
+            .order_by(AccountantOperation.id.desc())
+            .limit(1)
         )
         await db_channel.commit()
     except BaseException as E:
@@ -159,10 +185,10 @@ class AccountantUser(AccountantBase):
       raise
     finally:
       await db_engine.dispose()
-    return sum_daily_spendings
+    return last_spending
 
 
-class AccountantOperations(AccountantBase):
+class AccountantOperation(AccountantBase):
   __tablename__ = "accountant_operations"
 
   id: MappedColumn[int] = mapped_column(INTEGER, primary_key=True, nullable=False, autoincrement=True)
@@ -181,6 +207,22 @@ class AccountantOperations(AccountantBase):
           text("PRAGMA foreign_keys=on")
         )
         db_channel.add(self)
+        await db_channel.commit()
+    except BaseException as E:
+      logger.error(E)
+      await db_channel.rollback()
+      raise
+    finally:
+      await db_engine.dispose()
+    return None
+
+  @logger.catch
+  async def delete_operation(self) -> None:
+    try:
+      db_engine = create_db_engine()
+      db_session = create_db_session(db_engine=db_engine)
+      async with db_session.begin() as db_channel:
+        await db_channel.delete(self)
         await db_channel.commit()
     except BaseException as E:
       logger.error(E)
