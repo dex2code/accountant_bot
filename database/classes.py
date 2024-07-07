@@ -1,9 +1,11 @@
 from __future__ import annotations
 from loguru import logger
+from app_config import database
 
-from datetime import datetime, date, time
+from typing import Sequence
+from datetime import date, time, timedelta
 
-from sqlalchemy import select, text, extract
+from sqlalchemy import select, text, extract, delete
 from sqlalchemy import ForeignKey
 from sqlalchemy import func as sql_func
 from sqlalchemy.orm import DeclarativeBase, MappedColumn, relationship
@@ -121,6 +123,27 @@ class AccountantUser(AccountantBase):
     return sum_date_spendings
 
   @logger.catch
+  async def get_date_spendings(self, d: date) -> Sequence:
+    try:
+      db_engine = create_db_engine()
+      db_session = create_db_session(db_engine=db_engine)
+      async with db_session.begin() as db_channel:
+        date_spendings = await db_channel.scalars(
+          statement=select(AccountantOperation)
+            .filter(AccountantOperation.user_id == self.id)
+            .filter(AccountantOperation.operation_dt == d)
+            .order_by(AccountantOperation.id)
+        )
+        await db_channel.commit()
+    except BaseException as E:
+      logger.error(E)
+      await db_channel.rollback()
+      raise
+    finally:
+      await db_engine.dispose()
+    return date_spendings.all()
+
+  @logger.catch
   async def get_sum_month_spendings(self, y: int, m: int) -> int:
     try:
       db_engine = create_db_engine()
@@ -144,27 +167,26 @@ class AccountantUser(AccountantBase):
     return sum_month_spendings
 
   @logger.catch
-  async def get_sum_last_month_spendings(self) -> int:
+  async def get_agg_month_spendings(self, y: int, m: int) -> int:
     try:
       db_engine = create_db_engine()
       db_session = create_db_session(db_engine=db_engine)
       async with db_session.begin() as db_channel:
-        sum_last_month_spendings = await db_channel.scalar(
-          statement=select(sql_func.sum(AccountantOperation.operation_value))
+        agg_month_spendings = await db_channel.execute(
+          statement=select(AccountantOperation.operation_dt, sql_func.sum(AccountantOperation.operation_value))
             .filter(AccountantOperation.user_id == self.id)
-            .filter(extract('year', AccountantOperation.operation_dt) == datetime.today().year)
-            .filter(extract('month', AccountantOperation.operation_dt) == datetime.today().month)
+            .filter(extract('year', AccountantOperation.operation_dt) == y)
+            .filter(extract('month', AccountantOperation.operation_dt) == m)
+            .group_by(AccountantOperation.operation_dt)
         )
         await db_channel.commit()
-        if sum_last_month_spendings is None:
-          sum_last_month_spendings = 0
     except BaseException as E:
       logger.error(E)
       await db_channel.rollback()
       raise
     finally:
       await db_engine.dispose()
-    return sum_last_month_spendings
+    return agg_month_spendings.all()
 
   @logger.catch
   async def get_last_spending(self) -> AccountantOperation:
@@ -208,6 +230,11 @@ class AccountantOperation(AccountantBase):
           text("PRAGMA foreign_keys=on")
         )
         db_channel.add(self)
+        await db_channel.execute(
+          statement=delete(AccountantOperation)
+            .where(AccountantOperation.user_id == self.user_id)
+            .where(AccountantOperation.operation_dt < (date.today() - timedelta(days=database['store_records_days'])))
+        )
         await db_channel.commit()
     except BaseException as E:
       logger.error(E)

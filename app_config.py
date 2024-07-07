@@ -16,7 +16,8 @@ database = {
   "query": {"charset": "utf8mb4"},
   "echo": True,
   "autoflush": True,
-  "expire_on_commit": False
+  "expire_on_commit": False,
+  "store_records_days": 100
 }
 
 telegram = {

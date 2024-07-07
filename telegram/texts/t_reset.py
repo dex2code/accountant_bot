@@ -1,6 +1,6 @@
 from aiogram.utils.formatting import as_list, as_line, Code
 
-confirm_message = "Да, я уверен"
+confirm_message = "Да, я хочу удалить данные моего профиля"
 
 cmd_dict = {
 
