@@ -43,7 +43,8 @@ async def cmd_delete(message: types.Message, state: FSMContext) -> None:
       message=message,
       text=cmd_dict['confirm'].format(
         last_spend_value=last_spending.operation_value,
-        last_spend_date=last_spending.operation_dt.strftime("%-d %b %Y")
+        last_spend_date=last_spending.operation_dt.strftime("%d.%m.%y"),
+        last_spend_time=last_spending.operation_tt.strftime("%H:%M")
       )
     )
     await state.set_state(DeleteState.delete_sure)

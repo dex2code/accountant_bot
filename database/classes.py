@@ -1,7 +1,7 @@
 from __future__ import annotations
 from loguru import logger
 
-from datetime import datetime, date
+from datetime import datetime, date, time
 
 from sqlalchemy import select, text, extract
 from sqlalchemy import ForeignKey
@@ -9,7 +9,7 @@ from sqlalchemy import func as sql_func
 from sqlalchemy.orm import DeclarativeBase, MappedColumn, relationship
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.dialects.sqlite import INTEGER, DATE
+from sqlalchemy.dialects.sqlite import INTEGER, DATE, TIME
 
 from database.engine import create_db_engine
 from database.session import create_db_session
@@ -195,6 +195,7 @@ class AccountantOperation(AccountantBase):
   user_id: MappedColumn[int] = mapped_column(ForeignKey("accountant_users.id", ondelete="CASCADE"), index=True, nullable=False)
   operation_value: MappedColumn[int] = mapped_column(INTEGER, nullable=False, default=0)
   operation_dt: MappedColumn[date] = mapped_column(DATE, index=True, nullable=False, server_default=sql_func.current_date())
+  operation_tt: MappedColumn[time] = mapped_column(TIME, nullable=False, server_default=sql_func.current_time())
   user = relationship("AccountantUser", back_populates="operations")
 
   @logger.catch

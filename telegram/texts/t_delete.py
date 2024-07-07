@@ -15,8 +15,9 @@ cmd_dict = {
   "confirm": as_list(
     as_line(
       " 💸 Ваша последняя трата на сумму: ",
-      Italic("{last_spend_value:,}"), " ₽ ",
-      "от ", Italic("{last_spend_date}"), "."
+      Italic("{last_spend_value:,}"), " ₽\n",
+      "🕑 ", Italic("{last_spend_date}"),
+      ", в ", Italic("{last_spend_time}")
     ),
     as_line(
       " Если вы уверены, что хотите удалить эту запись, ответьте фразой: \"",
