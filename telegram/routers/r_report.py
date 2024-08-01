@@ -122,7 +122,7 @@ async def cmd_report(message: types.Message) -> None:
 
     await message.answer_photo(
       photo=chart_url,
-      caption="Данные за последние 30 дней"
+      caption="Данные за текущий месяц"
     )
 
   except BaseException as E:
